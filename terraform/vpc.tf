@@ -19,7 +19,7 @@ resource "aws_vpc" "unimarket" {
 # ====================
 # プライベートサブネット
 resource "aws_subnet" "private_web" {
-	vpc_id                  = "${aws_vpc.unimarket.id}"
+	vpc_id                  = aws_vpc.unimarket.id
 	cidr_block              = "10.0.1.0/24"
 	map_public_ip_on_launch = false
 	availability_zone       = "ap-northeast-1a"
@@ -30,7 +30,7 @@ resource "aws_subnet" "private_web" {
 
 # プライベートサブネット
 resource "aws_subnet" "private_db_1" {
-	vpc_id                  = "${aws_vpc.unimarket.id}"
+	vpc_id                  = aws_vpc.unimarket.id
 	cidr_block              = "10.0.2.0/24"
 	map_public_ip_on_launch = false
 	availability_zone       = "ap-northeast-1a"
@@ -41,7 +41,7 @@ resource "aws_subnet" "private_db_1" {
 
 # プライベートサブネット
 resource "aws_subnet" "private_db_2" {
-	vpc_id                  = "${aws_vpc.unimarket.id}"
+	vpc_id                  = aws_vpc.unimarket.id
 	cidr_block              = "10.0.3.0/24"
 	map_public_ip_on_launch = false
 	availability_zone       = "ap-northeast-1c"
@@ -57,7 +57,7 @@ resource "aws_subnet" "private_db_2" {
 resource "aws_db_subnet_group" "unimarket-db-subnet" {
 	name        = "unimarket-db-subnet"
 	description = "unimarket-db-subnet"
-	subnet_ids  =["${aws_subnet.private_db_1.id}","${aws_subnet.private_db_2.id}"]
+	subnet_ids  =[aws_subnet.private_db_1.id,aws_subnet.private_db_2.id]
 	tags = {
 		Name = "unimarket-db-subnet"
 	}
@@ -68,7 +68,7 @@ resource "aws_db_subnet_group" "unimarket-db-subnet" {
 # ====================
 # WEBサーバーのセキュリティグループ
 resource "aws_security_group" "unimarket-web-sg" {
-	vpc_id      = "${aws_vpc.unimarket.id}"
+	vpc_id      = aws_vpc.unimarket.id
 	name        = "unimarket-web-sg"
 	description = "unimarket-web-sg"
 	tags = {
@@ -117,7 +117,31 @@ resource "aws_security_group" "unimarket-db-sg" {
 		from_port       = 5432
 		to_port         = 5432
 		protocol        = "tcp"
-		security_groups = ["${aws_security_group.unimarket-web-sg.id}"]
+		security_groups = [aws_security_group.unimarket-web-sg.id]
+	}
+
+	egress {
+		from_port   = 0
+		to_port     = 0
+		protocol    = "-1"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+}
+
+# s3のセキュリティグループ
+resource "aws_security_group" "unimarket-s3-sg" {
+	name        = "unimarket-s3-sg"
+	description = "unimarket-s3-sg"
+	vpc_id      = aws_vpc.unimarket.id
+	tags = {
+		Name = "s3-sg"
+	}
+
+	ingress {
+		from_port       = 80
+		to_port         = 80
+		protocol        = "tcp"
+		security_groups = [aws_security_group.unimarket-web-sg.id]
 	}
 
 	egress {
@@ -129,10 +153,49 @@ resource "aws_security_group" "unimarket-db-sg" {
 }
 
 # ====================
+# Route Table
+# ====================
+resource "aws_route_table" "private" {
+	vpc_id = aws_vpc.unimarket.id
+
+	tags = {
+		Name = "private-route-table"
+	}
+}
+
+resource "aws_route_table_association" "private_web" {
+	subnet_id      = aws_subnet.private_web.id
+	route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_db_1" {
+	subnet_id      = aws_subnet.private_db_1.id
+	route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_db_2" {
+	subnet_id      = aws_subnet.private_db_2.id
+	route_table_id = aws_route_table.private.id
+}
+
+# ====================
 # VPC Link
 # ====================
 resource "aws_apigatewayv2_vpc_link" "unimarket_vpc_link" {
 	name         = "unimarket-vpc-link"
 	security_group_ids = [aws_security_group.unimarket-web-sg.id]
 	subnet_ids   = [aws_subnet.private_web.id]
+}
+
+# ====================
+# VPCエンドポイント
+# ====================
+resource "aws_vpc_endpoint" "s3" {
+	vpc_id            = aws_vpc.unimarket.id
+	service_name      = "com.amazonaws.ap-northeast-1.s3"
+	vpc_endpoint_type = "Gateway"
+	route_table_ids   = [aws_route_table.private.id]
+	tags = {
+		Name = "unimarket-s3-endpoint"
+	}
 }
