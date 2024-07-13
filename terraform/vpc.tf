@@ -27,14 +27,14 @@ resource "aws_internet_gateway" "unimarket-igw" {
 # ====================
 # Subnet
 # ====================
-# プライベートサブネット
-resource "aws_subnet" "private-web" {
+# パブリックサブネット
+resource "aws_subnet" "unimarket-web" {
 	vpc_id                  = aws_vpc.unimarket.id
 	cidr_block              = "10.0.1.0/24"
-	map_public_ip_on_launch = false
+	map_public_ip_on_launch = true
 	availability_zone       = "ap-northeast-1a"
 	tags = {
-		Name = "private-web"
+		Name = "public-web"
 	}
 }
 
@@ -106,9 +106,9 @@ resource "aws_security_group" "unimarket-web-sg" {
 		cidr_blocks = ["0.0.0.0/0"]
 	}
 
-	ingress {
-		from_port   = 8080
-		to_port     = 8080
+	egress {
+		from_port   = 5432
+		to_port     = 5432
 		protocol    = "tcp"
 		cidr_blocks = ["0.0.0.0/0"]
 	}
@@ -172,47 +172,23 @@ resource "aws_security_group" "unimarket-s3-sg" {
 # ====================
 # Route Table
 # ====================
-resource "aws_route_table" "private" {
+# パブリックルートテーブル
+resource "aws_route_table" "unimarket-public" {
 	vpc_id = aws_vpc.unimarket.id
-
-	tags = {
-		Name = "private-route-table"
+	tags   = {
+		Name = "public-route"
 	}
 }
 
-resource "aws_route_table_association" "private_web" {
-	subnet_id      = aws_subnet.private-web.id
-	route_table_id = aws_route_table.private.id
+# インターネットゲートウェイへのルート
+resource "aws_route" "public_route" {
+	gateway_id             = aws_internet_gateway.unimarket-igw.id
+	route_table_id         = aws_route_table.unimarket-public.id
+	destination_cidr_block = "0.0.0.0/0"
 }
 
-resource "aws_route_table_association" "private_db_1" {
-	subnet_id      = aws_subnet.private-db-1.id
-	route_table_id = aws_route_table.private.id
-}
-
-resource "aws_route_table_association" "private_db_2" {
-	subnet_id      = aws_subnet.private-db-2.id
-	route_table_id = aws_route_table.private.id
-}
-
-# ====================
-# VPC Link
-# ====================
-resource "aws_apigatewayv2_vpc_link" "unimarket-vpc-link" {
-	name         = "unimarket-vpc-link"
-	security_group_ids = [aws_security_group.unimarket-web-sg.id]
-	subnet_ids   = [aws_subnet.private-web.id]
-}
-
-# ====================
-# VPCエンドポイント
-# ====================
-resource "aws_vpc_endpoint" "s3" {
-	vpc_id            = aws_vpc.unimarket.id
-	service_name      = "com.amazonaws.ap-northeast-1.s3"
-	vpc_endpoint_type = "Gateway"
-	route_table_ids   = [aws_route_table.private.id]
-	tags = {
-		Name = "unimarket-s3-endpoint"
-	}
+# ルートテーブルとパブリックサブネットの関連付け
+resource "aws_route_table_association" "public_a" {
+	subnet_id      = aws_subnet.unimarket-web.id
+	route_table_id = aws_route_table.unimarket-public.id
 }
