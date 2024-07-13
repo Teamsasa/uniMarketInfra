@@ -1,6 +1,6 @@
 # uniMarketInfra
 
-![uniMarket](https://github.com/user-attachments/assets/2f289425-23f5-4169-8ec0-d3846c064cd6)
+![uniMarket](https://github.com/user-attachments/assets/0e206d85-9ade-4c9f-bb46-7283a37ac70c)
 
 Docker Composeを使ってterraform起動
 ```shell
