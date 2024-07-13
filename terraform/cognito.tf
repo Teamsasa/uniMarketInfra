@@ -3,7 +3,7 @@
 # ====================
 resource "aws_cognito_user_pool" "pool" {
 	# ユーザープールの名前を設定
-	name                       = "es-writers-pool"
+	name                       = "unimarket-pool"
 	
 	# ユーザー名の設定を大文字小文字区別に設定
 	username_configuration {
@@ -58,7 +58,7 @@ resource "aws_cognito_user_pool" "pool" {
 # ====================
 resource "aws_cognito_user_pool_client" "client" {
 	# ユーザープールクライアントの名前を設定
-	name                                 = "es-writers-client"
+	name                                 = "unimarket-client"
 	# ユーザープールIDを設定
 	user_pool_id                         = aws_cognito_user_pool.pool.id
 

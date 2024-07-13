@@ -33,7 +33,7 @@ resource "aws_db_instance" "main" {
 	skip_final_snapshot    = true
 	# マルチAZの設定
 	multi_az               = false
-	availability_zone      = var.aws_region
+	availability_zone      = "ap-northeast-1a"
 	# パブリックアクセスの設定
 	publicly_accessible    = false
 	tags = {

@@ -7,7 +7,7 @@ resource "aws_lb" "unimarket-nlb" {
 	# インターネット向けかどうかの設定
 	internal           = false
 	load_balancer_type = "network"
-	subnets            = [aws_subnet.private_web.id]
+	subnets            = [aws_subnet.private-web.id]
 	# 削除保護を無効に設定
 	enable_deletion_protection = false
 	tags = {
