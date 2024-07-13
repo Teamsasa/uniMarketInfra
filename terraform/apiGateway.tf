@@ -35,5 +35,5 @@ resource "aws_apigatewayv2_route" "default" {
 	# ルートキーを設定（どのパスでも受け付ける）
 	route_key = "ANY /{proxy+}"
 	# このルートのリクエストを処理するインテグレーションのID
-	target = aws_apigatewayv2_integration.unimarket-integration.id
+	target    = "integrations/${aws_apigatewayv2_integration.unimarket-integration.id}"
 }

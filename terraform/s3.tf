@@ -2,15 +2,10 @@
 # S3 bucket
 # ====================
 resource "aws_s3_bucket" "unimarket-bucket" {
-	bucket = "unimarket-bucket-${random_string.bucket_suffix.result}"
+	bucket = "unimarket-bucket-smpkq7cbjadd399cas"
 	tags = {
 		Name = "unimarket-bucket"
 	}
-}
-
-resource "random_string" "bucket_suffix" {
-  length  = 8
-  special = false
 }
 
 #パブリックアクセスを全て許可
