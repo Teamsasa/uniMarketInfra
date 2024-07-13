@@ -14,3 +14,11 @@ resource "aws_instance" "unimarket-web" {
 		Name = "unimarket"
 	}
 }
+
+# ====================
+# EC2 Instance Connect
+# ====================
+resource "aws_ec2_instance_connect_endpoint" "unimarket-web" {
+	subnet_id = aws_subnet.private-web.id
+	security_group_ids = [aws_security_group.unimarket-web-sg.id]
+}

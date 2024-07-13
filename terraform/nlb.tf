@@ -18,7 +18,7 @@ resource "aws_lb" "unimarket-nlb" {
 # ターゲットグループの設定
 resource "aws_lb_target_group" "unimarket-tg" {
 	name        = "unimarket-tg"
-	port        = 80
+	port        = 8080
 	protocol    = "TCP"
 	vpc_id      = aws_vpc.unimarket.id
 	target_type = "instance"
@@ -28,7 +28,7 @@ resource "aws_lb_target_group" "unimarket-tg" {
 resource "aws_lb_listener" "unimarket-listener" {
 	# リスナーを設定するロードバランサーのARN
 	load_balancer_arn = aws_lb.unimarket-nlb.arn
-	port              = 80
+	port              = 8080
 	protocol          = "TCP"
 
 	default_action {
