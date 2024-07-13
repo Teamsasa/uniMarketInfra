@@ -45,5 +45,5 @@ resource "aws_lb_target_group_attachment" "unimarket-attachment" {
 	target_group_arn = aws_lb_target_group.unimarket-tg.arn
 	# アタッチするターゲットのID（インスタンスID）
 	target_id        = aws_instance.unimarket-web.id
-	port             = 80
+	port             = 8080
 }
